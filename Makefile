@@ -6,7 +6,7 @@
 TARGET		:= RACE
 HANDY := lynx
 PSPAPP = race/psp
-PSP_APP_NAME=RACE! PSVITA
+PSP_APP_NAME=RaceVITA
 PSP_APP_VER=2.16
 
 #SOURCES		:= src $(ZLIB)
@@ -31,7 +31,7 @@ OBJS=$(BUILD_EMUL) $(BUILD_MZ) $(BUILD_PORT)
 LIBS= -lpsplib -lz -lpng -lvita2d -lm_stub -lSceDisplay_stub -lSceGxm_stub 	\
 	-lSceCtrl_stub -lSceAudio_stub -lSceRtc_Stub -lScePower_Stub -lSceAppUtil_stub
 
-DEFINES = -DPSP -DCZ80 -DTARGET_PSP -DPSP_APP_NAME="\"$(PSP_APP_NAME)\"" -DPSP_APP_VER="\"$(PSP_APP_VER)\"" -D_MAX_PATH=2048 -DHOST_FPS=60
+DEFINES = -DPSP -DCZ80 -DTARGET_PSP -DPSP_APP_NAME=\"$(PSP_APP_NAME)\" -DPSP_APP_VER=\"$(PSP_APP_VER)\" -D_MAX_PATH=2048 -DHOST_FPS=60
 
 
 

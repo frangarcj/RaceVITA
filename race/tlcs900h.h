@@ -17,6 +17,15 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
+#include <time.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+time_t sceKernelLibcTime(time_t *t);
+#ifdef __cplusplus
+}
+#endif
+
 extern unsigned long gen_regsPC, gen_regsSR;
 extern unsigned char F2;
 extern unsigned long

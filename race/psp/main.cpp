@@ -26,9 +26,13 @@ int main(int argc, char **argv)
 {
   /* Initialize PSP */
   //pl_psp_init(argv[0]);
+  printf("PSP_INIT");
   pl_psp_init("cache0:/VitaDefilerClient/Documents/");
+  printf("SND_INIT");
   pl_snd_init(512, 0);
+  printf("CTRL_INIT");
   pspCtrlInit();
+  printf("VIDEO_INIT");
   pspVideoInit();
 
   /* Initialize callbacks */
