@@ -26,23 +26,27 @@ int main(int argc, char **argv)
 {
   /* Initialize PSP */
   //pl_psp_init(argv[0]);
-  printf("PSP_INIT");
+  printf("RUNNING");
   pl_psp_init("cache0:/VitaDefilerClient/Documents/");
-  printf("SND_INIT");
+  printf("PSP_INIT");
   pl_snd_init(512, 0);
-  printf("CTRL_INIT");
+  printf("SND_INIT");
   pspCtrlInit();
-  printf("VIDEO_INIT");
+  printf("CTRL_INIT");
   pspVideoInit();
+  printf("VIDEO_INIT");
 
   /* Initialize callbacks */
   pl_psp_register_callback(PSP_EXIT_CALLBACK,
                            ExitCallback,
                            NULL);
+  printf("REGISTER EXIT");
   pl_psp_start_callback_thread();
+  printf("START_CALLBACK");
 
   if (InitMenu())
   {
+    printf("INIT_MENU");
     DisplayMenu();
     TrashMenu();
   }

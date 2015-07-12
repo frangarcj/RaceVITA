@@ -41,8 +41,8 @@ CC      = $(PREFIX)-gcc
 CXX			=$(PREFIX)-g++
 READELF = $(PREFIX)-readelf
 OBJDUMP = $(PREFIX)-objdump
-CFLAGS  = -O2 -Wall -specs=psp2.specs $(DEFINES)
-CXXFLAGS = $(CFLAGS) -fno-unwind-tables -fno-rtti -fno-exceptions -Wno-deprecated -Wno-comment -Wno-sequence-point
+CFLAGS  = -O2 -Wall -specs=psp2.specs $(DEFINES) -fno-exceptions -fno-unwind-tables -fno-asynchronous-unwind-tables
+CXXFLAGS = $(CFLAGS) -mword-relocations -fno-rtti -Wno-deprecated -Wno-comment -Wno-sequence-point
 ASFLAGS = $(CFLAGS)
 
 

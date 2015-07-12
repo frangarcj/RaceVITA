@@ -392,10 +392,10 @@ void DisplayMenu()
     ResumeEmulation = 0;
 
     /* Set normal clock frequency */
-    pl_psp_set_clock_freq(222);
+    //pl_psp_set_clock_freq(222);
     /* Set buttons to autorepeat */
     //TODO pspCtrlSetPollingMode(PSP2_CTRL_AUTOREPEAT);
-
+    printf("%d",TabIndex);
     do
     {
       /* Display appropriate tab */
@@ -436,6 +436,7 @@ void DisplayMenu()
         pspUiSplashScreen(&SplashScreen);
         break;
       }
+      printf("BUCLEEEEE");
     } while (!ExitPSP && !ResumeEmulation);
 
     if (!ExitPSP)
@@ -703,10 +704,9 @@ static void OnSplashRender(const void *splash,
     "2006 Judge_",
     NULL
   };
-
   fh = pspFontGetLineHeight(UiMetric.Font);
 
-  for (i = 0; lines[i]; i++);
+  for(i = 0; lines[i]; i++);
   height = fh * (i - 1);
 
   /* Render lines */
