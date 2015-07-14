@@ -27,8 +27,6 @@
 #include <psplib/ui.h>
 #include "../state.h"
 
-#undef uint32_t
-
 extern PspImage *Screen;
 extern pl_rewind Rewinder;
 
@@ -349,10 +347,10 @@ int InitMenu()
   /* Initialize UI components */
   UiMetric.Background = Background;
   UiMetric.Font = &PspStockFont;
-  UiMetric.Left = 8;
-  UiMetric.Top = 24;
-  UiMetric.Right = 472;
-  UiMetric.Bottom = 250;
+  UiMetric.Left = 16;
+  UiMetric.Top = 48;
+  UiMetric.Right = 944;
+  UiMetric.Bottom = 500;
   UiMetric.ScrollbarColor = PSP_COLOR_GRAY;
   UiMetric.ScrollbarBgColor = 0x44ffffff;
   UiMetric.ScrollbarWidth = 10;
@@ -394,7 +392,7 @@ void DisplayMenu()
     /* Set normal clock frequency */
     //pl_psp_set_clock_freq(222);
     /* Set buttons to autorepeat */
-    //TODO pspCtrlSetPollingMode(PSP2_CTRL_AUTOREPEAT);
+    pspCtrlSetPollingMode(PSP_CTRL_AUTOREPEAT);
     printf("%d",TabIndex);
     do
     {
@@ -436,7 +434,6 @@ void DisplayMenu()
         pspUiSplashScreen(&SplashScreen);
         break;
       }
-      printf("BUCLEEEEE");
     } while (!ExitPSP && !ResumeEmulation);
 
     if (!ExitPSP)
@@ -444,7 +441,7 @@ void DisplayMenu()
       /* Set clock frequency during emulation */
       pl_psp_set_clock_freq(psp_options.clock_freq);
       /* Set buttons to normal mode */
-      //TODO pspCtrlSetPollingMode(PSP2_CTRL_NORMAL);
+      pspCtrlSetPollingMode(PSP_CTRL_NORMAL);
 
       if (ResumeEmulation)
       {
@@ -699,6 +696,7 @@ static void OnSplashRender(const void *splash,
     ""PSP_APP_NAME" version "PSP_APP_VER" ("__DATE__")",
     "\026http://psp.akop.org/race",
     " ",
+    "2015 Frangarcj",
     "2008-2009 Akop Karapetyan",
     "2008 Flavor",
     "2006 Judge_",
@@ -880,7 +878,7 @@ static int psp_load_controls()
 
   /* Open file for reading */
   SceUID file = sceIoOpen(path,PSP2_O_RDONLY,0777);
-	if (!file) return 0;
+	if (file<0) return 0;
 
   /* Read contents of struct */
   int nread = sceIoRead(file,config, sizeof(psp_ctrl_map_t));
@@ -904,7 +902,7 @@ static int psp_save_controls()
 
   /* Open file for writing */
   SceUID file = sceIoOpen(path,PSP2_O_WRONLY,0777);
-  if (!file) return 0;
+  if (file<0) return 0;
 
   /* Write contents of struct */
   int nwritten = sceIoWrite(file,config, sizeof(psp_ctrl_map_t));
@@ -1006,7 +1004,7 @@ static int psp_load_state(const char *path)
 {
   /* Open file for reading */
   SceUID f = sceIoOpen(path,PSP2_O_RDONLY,0777);
-  if (!f) return 0;
+  if (f<0) return 0;
 
   /* Load image into temporary object */
   PspImage *image = pspImageLoadPngFd(f);
@@ -1032,7 +1030,7 @@ static PspImage* psp_save_state(const char *path, PspImage *icon)
 {
   /* Open file for writing */
   SceUID f = sceIoOpen(path,PSP2_O_WRONLY,0777);
-  if (!f) return NULL;
+  if (f<0) return NULL;
 
   /* Create thumbnail */
   PspImage *thumb;
