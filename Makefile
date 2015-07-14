@@ -29,7 +29,7 @@ BUILD_PORT=$(PSPAPP)/main.o $(PSPAPP)/emulate.o $(PSPAPP)/menu.o
 OBJS=$(BUILD_EMUL) $(BUILD_MZ) $(BUILD_PORT)
 
 LIBS= -lpsplib -lz -lpng -lvita2d -lm_stub -lSceDisplay_stub -lSceGxm_stub 	\
-	-lSceCtrl_stub -lSceAudio_stub -lSceRtc_Stub -lScePower_Stub -lSceAppUtil_stub
+	-lSceCtrl_stub -lSceAudio_stub -lSceRtc_stub -lScePower_stub -lSceAppUtil_stub
 
 DEFINES = -DPSP -DCZ80 -DTARGET_PSP -DPSP_APP_NAME=\"$(PSP_APP_NAME)\" -DPSP_APP_VER=\"$(PSP_APP_VER)\" -D_MAX_PATH=2048 -DHOST_FPS=60
 
@@ -41,9 +41,9 @@ CC      = $(PREFIX)-gcc
 CXX			=$(PREFIX)-g++
 READELF = $(PREFIX)-readelf
 OBJDUMP = $(PREFIX)-objdump
-CFLAGS  = -O2 -Wall -specs=psp2.specs $(DEFINES) -fno-exceptions -fno-unwind-tables -fno-asynchronous-unwind-tables
+CFLAGS  = -O2 -Wall -specs=psp2.specs $(DEFINES) -fno-exceptions -fno-unwind-tables -fno-asynchronous-unwind-tables -ffunction-sections
 CXXFLAGS = $(CFLAGS) -mword-relocations -fno-rtti -Wno-deprecated -Wno-comment -Wno-sequence-point
-ASFLAGS = $(CFLAGS)
+ASFLAGS = $(CFLAGS) --gc-sections
 
 
 
