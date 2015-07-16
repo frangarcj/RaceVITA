@@ -99,6 +99,7 @@ void graphics_paint()
   /* Blit screen */
   //sceGuDisable(GU_BLEND);
   pspVideoPutImage(Screen, ScreenX, ScreenY, ScreenW, ScreenH);
+  //printf("%d %d %d %d", ScreenX, ScreenY, ScreenW, ScreenH);
   //sceGuEnable(GU_BLEND);
 
   /* Wait if needed */

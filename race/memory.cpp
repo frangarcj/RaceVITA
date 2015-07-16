@@ -27,6 +27,9 @@
 #include "tlcs900h.h"
 #include "koyote_bin.h"
 
+#include <psp2/types.h>
+#include <psp2/io/fcntl.h>
+
 
 #ifdef DRZ80
 #include "DrZ80_support.h"
@@ -345,21 +348,22 @@ const unsigned long ngpVectors[0x21] = {
 //return 0 on fail
 unsigned char loadBIOS()
 {
-    FILE *biosFile;
+    SceUID biosFile;
 	int bytesRead;
 
 
-	biosFile = fopen("NPBIOS.BIN", "rb");
-    if(!biosFile)
+	biosFile = sceIoOpen("cache0:/VitaDefilerClient/Documents/NPBIOS.BIN", PSP2_O_RDONLY, 0777);
+  printf("biosFile %d",biosFile);
+    if(biosFile<=0)
         return 0;
 
 
-	bytesRead = fread(cpurom, 1, 0x10000, biosFile);
-	fclose(biosFile);
+	bytesRead = sceIoRead(biosFile,cpurom,0x10000);
+	sceIoClose(biosFile);
 
 	if(bytesRead != 0x10000)
 	{
-		fprintf(stderr, "loadBIOS: Bad BIOS file %s\n", "NPBIOS.BIN");
+		printf("loadBIOS: Bad BIOS file %s\n", "NPBIOS.BIN");
 		return 0;
 	}
 	return 1;
@@ -523,4 +527,3 @@ void mem_dump_ram(FILE *output)
 {
 	fwrite(mainram,1,sizeof(mainram),output);
 }
-

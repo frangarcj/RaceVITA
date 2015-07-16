@@ -24,7 +24,7 @@
 #define ZOOM_SUPPORT
 
 //render screen 260x152 is good for NGPC
-#define SIZEX	260//480//368//320//480
+#define SIZEX	160//480//368//320//480
 #define SIZEY	152//272//207//240//272
 
 //extern unsigned char bwPaletteDirty, spritePaletteDirty, frontPaletteDirty, backPaletteDirty;

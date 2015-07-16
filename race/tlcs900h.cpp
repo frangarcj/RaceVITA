@@ -685,7 +685,7 @@ void printTlcs900hProfile()
     profileFile = fopen("profile.csv", "wt");
     if(!profileFile)
     {
-        fprintf(stderr, "Couldn't open %s file\n", "profile.csv");
+        printf("Couldn't open %s file\n", "profile.csv");
         return;
     }
 
@@ -9150,7 +9150,6 @@ inline void tlcs_execute(int cycles)
 #endif
 
     UpdateInputState();
-
     while(cycles > 0)
     {
         /* AKTODO */

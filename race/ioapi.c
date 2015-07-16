@@ -13,6 +13,8 @@
 #include "zlib.h"
 #include "ioapi.h"
 
+#include <psp2/types.h>
+#include <psp2/io/fcntl.h>
 
 
 /* I've found an old Unix (a SunOS 4.1.3_U1) without all SEEK_* defined.... */
@@ -70,19 +72,19 @@ voidpf ZCALLBACK fopen_file_func (opaque, filename, mode)
    const char* filename;
    int mode;
 {
-    FILE* file = NULL;
-    const char* mode_fopen = NULL;
+    SceUID file = NULL;
+    int mode_fopen = 0;
     if ((mode & ZLIB_FILEFUNC_MODE_READWRITEFILTER)==ZLIB_FILEFUNC_MODE_READ)
-        mode_fopen = "rb";
+        mode_fopen = PSP2_O_RDONLY;
     else
     if (mode & ZLIB_FILEFUNC_MODE_EXISTING)
-        mode_fopen = "r+b";
+        mode_fopen = PSP2_O_RDWR;
     else
     if (mode & ZLIB_FILEFUNC_MODE_CREATE)
-        mode_fopen = "wb";
+        mode_fopen = PSP2_O_WRONLY | PSP2_O_CREAT;
 
-    if ((filename!=NULL) && (mode_fopen != NULL))
-        file = fopen(filename, mode_fopen);
+    if ((filename!=NULL) && (mode_fopen != 0))
+        file = sceIoOpen(filename, mode_fopen, 0777);
     return file;
 }
 
@@ -94,7 +96,7 @@ uLong ZCALLBACK fread_file_func (opaque, stream, buf, size)
    uLong size;
 {
     uLong ret;
-    ret = fread(buf, 1, (size_t)size, (FILE *)stream);
+    ret = sceIoRead((SceUID)stream, buf, (size_t)size);
     return ret;
 }
 
@@ -106,7 +108,7 @@ uLong ZCALLBACK fwrite_file_func (opaque, stream, buf, size)
    uLong size;
 {
     uLong ret;
-    ret = fwrite(buf, 1, (size_t)size, (FILE *)stream);
+    ret = sceIoRead((SceUID)stream, buf, (size_t)size);
     return ret;
 }
 
@@ -115,7 +117,8 @@ long ZCALLBACK ftell_file_func (opaque, stream)
    voidpf stream;
 {
     long ret;
-    ret = ftell((FILE *)stream);
+    ret = sceIoLseek((SceUID)stream,0,PSP2_SEEK_END);
+    sceIoLseek((SceUID)stream,0,PSP2_SEEK_SET);
     return ret;
 }
 
@@ -130,18 +133,18 @@ long ZCALLBACK fseek_file_func (opaque, stream, offset, origin)
     switch (origin)
     {
     case ZLIB_FILEFUNC_SEEK_CUR :
-        fseek_origin = SEEK_CUR;
+        fseek_origin = PSP2_SEEK_CUR;
         break;
     case ZLIB_FILEFUNC_SEEK_END :
-        fseek_origin = SEEK_END;
+        fseek_origin = PSP2_SEEK_END;
         break;
     case ZLIB_FILEFUNC_SEEK_SET :
-        fseek_origin = SEEK_SET;
+        fseek_origin = PSP2_SEEK_SET;
         break;
     default: return -1;
     }
     ret = 0;
-    fseek((FILE *)stream, offset, fseek_origin);
+    sceIoLseek((SceUID)stream,offset,fseek_origin);
     return ret;
 }
 
@@ -150,7 +153,7 @@ int ZCALLBACK fclose_file_func (opaque, stream)
    voidpf stream;
 {
     int ret;
-    ret = fclose((FILE *)stream);
+    ret = sceIoClose((SceUID)stream);
     return ret;
 }
 
@@ -158,8 +161,8 @@ int ZCALLBACK ferror_file_func (opaque, stream)
    voidpf opaque;
    voidpf stream;
 {
-    int ret;
-    ret = ferror((FILE *)stream);
+    int ret = 0;
+    //ret = ferror((FILE *)stream);
     return ret;
 }
 

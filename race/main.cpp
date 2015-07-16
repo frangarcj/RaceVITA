@@ -15,6 +15,12 @@
 #include <SDL/SDL_ttf.h>
 #endif
 
+#ifdef TARGET_PSP
+#include <psp2/types.h>
+#include <psp2/io/fcntl.h>
+#endif
+
+
 #include "unzip.h"
 
 #ifndef __GP32__
@@ -70,14 +76,17 @@ void mainemuinit()
 {
 	// initialize cpu memory
 	mem_init();
+	printf("mem_init");
 #ifndef __GP32__
 	graphics_init(NULL);
 #else
 	graphics_init();
 #endif
+printf("graphics_init");
 
     // initialize the TLCS-900H cpu
     tlcs_init();
+		printf("tlcs_init");
 
 #if defined(DRZ80) || defined(CZ80)
 	Z80_Init();
@@ -85,6 +94,7 @@ void mainemuinit()
 #else
     z80Init();
 #endif
+printf("z80init");
 
     // if neogeo pocket color rom, act if we are a neogeo pocket color
     tlcsMemWriteB(0x6F91,tlcsMemReadB(0x00200023));
@@ -95,9 +105,12 @@ void mainemuinit()
     {
         case 0x0059:	// Sonic
         case 0x0061:	// Metal SLug 2nd
+						printf("sonic");
             *get_address(0x0020001F) = 0xFF;
             break;
     }
+		printf("ngpSoundOff");
+
     ngpSoundOff();
     //Flavor sound_start();
 }
@@ -182,11 +195,11 @@ bool initRom()
 			return TRUE;
 		}
 
-		fprintf(stderr, "Not a valid or unsupported rom file.\n");
+		printf("Not a valid or unsupported rom file.\n");
 		return FALSE;
 	}
 
-	fprintf(stderr, "Not a valid or unsupported rom file. romFound==FALSE\n");
+	printf("Not a valid or unsupported rom file. romFound==FALSE\n");
 	return FALSE;
 }
 
@@ -354,11 +367,11 @@ int loadFromZipByName(unsigned char *buffer, char *archive, char *filename, int 
 int check_zip(char *filename)
 {
     unsigned char buf[2];
-    FILE *fd = NULL;
-    fd = fopen(filename, "rb");
+    SceUID fd = NULL;
+    fd = sceIoOpen(filename,PSP2_O_RDONLY,0777);
     if(!fd) return (0);
-    fread(buf, 2, 1, fd);
-    fclose(fd);
+    sceIoRead(fd,buf, 2);
+    sceIoClose(fd);
     if(memcmp(buf, "PK", 2) == 0) return (1);
     return (0);
 }
@@ -379,11 +392,11 @@ int strrchr2(const char *src, int c)
 
 int handleInputFile(char *romName)
 {
-	FILE *romFile;
+	SceUID romFile;
 	int iDepth = 0;
 	int size;
 
-
+  printf("handle");
 	initSysInfo();  //initialize it all
 
 	//if it's a ZIP file, we need to handle that here.
@@ -392,43 +405,48 @@ int handleInputFile(char *romName)
 	if( ( strcmp( romName + iDepth, "zip" ) == 0 ) || ( strcmp( romName + iDepth, "ZIP" ) == 0 ))
 	{
 		//get ROM from ZIP
+		printf("check_zip %s",romName);
 		if(check_zip(romName))
 		{
 			char name[_MAX_PATH];
+			printf("loadfromzip");
 			if(!loadFromZipByName(mainrom, romName, name, &size))
 			{
-				fprintf(stderr, "Load failed from %s\n", romName);
+				printf("Load failed from %s\n", romName);
 				return 0;
 			}
 			m_emuInfo.romSize = size;
+			printf("strcpy %d",size);
 			strcpy(m_emuInfo.RomFileName, romName);
+			printf("strcpy %d",size);
 		}
 		else
 		{
-			fprintf(stderr, "%s not PKZIP file\n", romName);
+			printf("%s not PKZIP file\n", romName);
 			return 0;
 		}
 	}
 	else
 	{
 		//get ROM from binary ROM file
-		romFile = fopen(romName, "rb");
-		if(!romFile)
+		romFile = sceIoOpen(romName,PSP2_O_RDONLY,0777);
+		if(romFile<=0)
 		{
-			fprintf(stderr, "Couldn't open %s file\n", romName);
+			printf("Couldn't open %s file\n", romName);
 			return 0;
 		}
 
-		m_emuInfo.romSize = fread(mainrom, 1, 4*1024*1024, romFile);
+		m_emuInfo.romSize = sceIoRead(romFile,mainrom,4*1024*1024);
 		strcpy(m_emuInfo.RomFileName, romName);
 	}
 
+	printf("initRom");
 	if(!initRom())
 	{
-		fprintf(stderr, "initRom couldn't handle %s file\n", romName);
+		printf("initRom couldn't handle %s file\n", romName);
 		return 0;
 	}
-
+  printf("setflashSize");
 	setFlashSize(m_emuInfo.romSize);
 	return 1;
 }
@@ -448,7 +466,7 @@ int main(int argc, char *argv[])
 #endif
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO|SDL_INIT_JOYSTICK) < 0)
 	{
-		fprintf(stderr, "SDL_Init failed!\n");
+		printf("SDL_Init failed!\n");
 #ifdef TARGET_PSP
 		sceKernelExitGame();
 #endif
@@ -462,7 +480,7 @@ int main(int argc, char *argv[])
 	actualScreen = SDL_SetVideoMode (SIZEX, SIZEY, 16, SDL_SWSURFACE);
 	if (actualScreen == NULL)
 	{
-		fprintf(stderr, "SDL_SetVideoMode failed!\n");
+		printf("SDL_SetVideoMode failed!\n");
 #ifdef TARGET_PSP
 		sceKernelExitGame();
 #endif
@@ -483,7 +501,7 @@ int main(int argc, char *argv[])
                                 actualScreen->format->Amask);
 	if (screen == NULL)
 	{
-		fprintf(stderr, "SDL_CreateRGBSurface failed!\n");
+		printf("SDL_CreateRGBSurface failed!\n");
 #ifdef TARGET_PSP
 		sceKernelExitGame();
 #endif

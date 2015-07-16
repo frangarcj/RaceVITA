@@ -562,16 +562,16 @@ static int OnQuickloadOk(const void *browser,
 
   /* Reset selected state */
   SaveStateGallery.Menu.selected = NULL;
-
+  printf("set current game %s", path);
   SET_AS_CURRENT_GAME((char*)path);
   pl_file_get_parent_directory((const char*)path,
                                GamePath,
                                sizeof(GamePath));
   ResumeEmulation = 1;
-
+  printf("get_parent_directory");
   system_sound_chipreset(); /* Reset sound */
   pl_rewind_reset(&Rewinder);
-
+  printf("quickloadok");
   return 1;
 }
 

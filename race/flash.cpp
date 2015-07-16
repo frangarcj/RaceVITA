@@ -19,6 +19,8 @@
 #include "flash.h"
 #include <string.h>
 #include <unistd.h>
+#include <psp2/types.h>
+#include <psp2/io/fcntl.h>
 
 //#define DEBUG_FLASH
 #ifdef DEBUG_FLASH
@@ -230,12 +232,12 @@ void setupNGFfilename()
 	}
 	if(dotSpot == -1)
 	{
-		fprintf(stderr, "setupNGFfilename: Couldn't find the . in %s file\n", ngfFilename);
+		printf("setupNGFfilename: Couldn't find the . in %s file", ngfFilename);
 		return;
 	}
 
 	strcpy(&ngfFilename[dotSpot+1], "ngf");
-	fprintf(stdout, "setupNGFfilename: using %s for save-game info\n", ngfFilename);
+	printf("setupNGFfilename: using %s for save-game info", ngfFilename);
 }
 
 //write all the dirty blocks out to a file
@@ -260,7 +262,7 @@ void writeSaveGameFile()
 	ngfFile = fopen(ngfFilename, "wb");
 	if(!ngfFile)
 	{
-		fprintf(stderr, "writeSaveGameFile: Couldn't open %s file\n", ngfFilename);
+		printf("writeSaveGameFile: Couldn't open %s file\n", ngfFilename);
 		return;
 	}
 
@@ -289,7 +291,7 @@ void writeSaveGameFile()
 			{
 #ifdef DEBUG_FLASH
 				fprintf(debugFile, "writeSaveGameFile: found 2nd chip dirty block %d\n", i);
-#endif	
+#endif
 				NGFheader.numBlocks++;
 				NGFheader.fileLen += blockSize(i);
 			}
@@ -301,7 +303,7 @@ void writeSaveGameFile()
 	bytes = fwrite(&NGFheader, 1, sizeof(NGFheaderStruct), ngfFile);
 	if(bytes != sizeof(NGFheaderStruct))
 	{
-		fprintf(stderr, "writeSaveGameFile: wrote %d bytes, but exptected %d bytes\n", bytes, sizeof(NGFheaderStruct));
+		printf("writeSaveGameFile: wrote %d bytes, but exptected %d bytes\n", bytes, sizeof(NGFheaderStruct));
 		fclose(ngfFile);
 		return;
 	}
@@ -322,7 +324,7 @@ void writeSaveGameFile()
 			bytes = fwrite(&block, 1, sizeof(blockStruct), ngfFile);
 			if(bytes != sizeof(blockStruct))
 			{
-				fprintf(stderr, "writeSaveGameFile: wrote %d bytes, but exptected %d bytes\n", bytes, sizeof(blockStruct));
+				printf("writeSaveGameFile: wrote %d bytes, but exptected %d bytes\n", bytes, sizeof(blockStruct));
 				fclose(ngfFile);
 				return;
 			}
@@ -330,7 +332,7 @@ void writeSaveGameFile()
 			bytes = fwrite(&mainrom[blockNumToAddr(0, i)], 1, blockSize(i), ngfFile);
 			if(bytes != blockSize(i))
 			{
-				fprintf(stderr, "writeSaveGameFile: wrote %d bytes, but exptected %d bytes\n", bytes, blockSize(i));
+				printf("writeSaveGameFile: wrote %d bytes, but exptected %d bytes\n", bytes, blockSize(i));
 				fclose(ngfFile);
 				return;
 			}
@@ -353,7 +355,7 @@ void writeSaveGameFile()
 				bytes = fwrite(&block, 1, sizeof(blockStruct), ngfFile);
 				if(bytes != sizeof(blockStruct))
 				{
-					fprintf(stderr, "writeSaveGameFile: wrote %d bytes, but exptected %d bytes\n", bytes, sizeof(blockStruct));
+					printf("writeSaveGameFile: wrote %d bytes, but exptected %d bytes\n", bytes, sizeof(blockStruct));
 					fclose(ngfFile);
 					return;
 				}
@@ -361,7 +363,7 @@ void writeSaveGameFile()
 				bytes = fwrite(&mainrom[blockNumToAddr(1, i)], 1, blockSize(i), ngfFile);
 				if(bytes != blockSize(i))
 				{
-					fprintf(stderr, "writeSaveGameFile: wrote %d bytes, but exptected %d bytes\n", bytes, blockSize(i));
+					printf("writeSaveGameFile: wrote %d bytes, but exptected %d bytes\n", bytes, blockSize(i));
 					fclose(ngfFile);
 					return;
 				}
@@ -390,7 +392,7 @@ void writeSaveGameFile()
 void loadSaveGameFile()
 {
 	//find the NGF file and read it in
-	FILE *ngfFile;
+	SceUID ngfFile;
 	int bytes, i;
 	unsigned char *blocks;
 	void *blockMem;
@@ -400,22 +402,21 @@ void loadSaveGameFile()
 #ifdef DEBUG_FLASH
 	fprintf(debugFile, "loadSaveGameFile: entry\n");
 #endif
-
     setupNGFfilename();
 
-	ngfFile = fopen(ngfFilename, "rb");
-	if(!ngfFile)
+	ngfFile = sceIoOpen(ngfFilename,PSP2_O_RDONLY,0777);
+	if(ngfFile<=0)
 	{
-		printf("loadSaveGameFile: Couldn't open %s file\n", ngfFilename);
+		printf("loadSaveGameFile: Couldn't open %s file", ngfFilename);
 		return;
 	}
 
-	bytes = fread(&NGFheader, 1, sizeof(NGFheaderStruct), ngfFile);
+	bytes = sceIoRead(ngfFile,&NGFheader, sizeof(NGFheaderStruct));
 
 	if(bytes != sizeof(NGFheaderStruct))
 	{
-		fprintf(stderr, "loadSaveGameFile: Bad NGF file %s\n", ngfFilename);
-		fclose(ngfFile);
+		printf("loadSaveGameFile: Bad NGF file %s", ngfFilename);
+		sceIoClose(ngfFile);
 		return;
 	}
 
@@ -428,8 +429,8 @@ void loadSaveGameFile()
 
 	if(NGFheader.version != 0x53)
 	{
-		fprintf(stderr, "loadSaveGameFile: Bad NGF file version %s 0x%X\n", ngfFilename, NGFheader.version);
-		fclose(ngfFile);
+		printf("loadSaveGameFile: Bad NGF file version %s 0x%X", ngfFilename, NGFheader.version);
+		sceIoClose(ngfFile);
 		return;
 	}
 
@@ -437,26 +438,26 @@ void loadSaveGameFile()
     //error handling?
     if(!blockMem)
     {
-		fprintf(stderr, "loadSaveGameFile: can't malloc %d bytes\n", (NGFheader.fileLen - sizeof(NGFheaderStruct)));
+		printf("loadSaveGameFile: can't malloc %d bytes", (NGFheader.fileLen - sizeof(NGFheaderStruct)));
         return;
     }
 
 
 	blocks = (unsigned char *)blockMem;
 
-	bytes = fread(blocks, 1, NGFheader.fileLen - sizeof(NGFheaderStruct), ngfFile);
-	fclose(ngfFile);
+	bytes = sceIoRead(ngfFile,blocks, NGFheader.fileLen - sizeof(NGFheaderStruct));
+	sceIoClose(ngfFile);
 
 	if(bytes != (NGFheader.fileLen - sizeof(NGFheaderStruct)))
 	{
-		fprintf(stderr, "loadSaveGameFile: read %d bytes, but exptected %d bytes\n", bytes, (NGFheader.fileLen - sizeof(NGFheaderStruct)));
+		printf("loadSaveGameFile: read %d bytes, but exptected %d bytes", bytes, (NGFheader.fileLen - sizeof(NGFheaderStruct)));
 		free(blockMem);
 		return;
 	}
 
     if(NGFheader.numBlocks > MAX_BLOCKS)
     {
-		fprintf(stderr, "loadSaveGameFile: numBlocks=%d overflow\n", NGFheader.numBlocks);
+		printf("loadSaveGameFile: numBlocks=%d overflow", NGFheader.numBlocks);
 		free(blockMem);
 		return;
     }
@@ -471,7 +472,7 @@ void loadSaveGameFile()
              ||
              (blockHeader->NGPCaddr >= 0x800000 && blockHeader->NGPCaddr < 0xA00000) ))
         {
-            fprintf(stderr, "loadSaveGameFile: invalid blockHeader->NGPCaddr=0x%08X\n", blockHeader->NGPCaddr);
+            printf("loadSaveGameFile: invalid blockHeader->NGPCaddr=0x%08X", blockHeader->NGPCaddr);
             free(blockMem);
             return;
         }
@@ -703,11 +704,14 @@ void flashStartup()
         debugFile = fopen("flashDebug.txt", "wt");
     }
 #endif
+  printf("memset");
 	memset(blocksDirty[0], 0, MAX_BLOCKS*sizeof(blocksDirty[0][0]));
 	memset(blocksDirty[1], 0, MAX_BLOCKS*sizeof(blocksDirty[0][0]));
 	needToWriteFile = 0;
 
+	printf("loadSaveGameFile");
 	loadSaveGameFile();
+	printf("endloadsavegamefile");
 }
 
 void vectFlashWrite(unsigned char chip, unsigned int to, unsigned char *fromAddr, unsigned int numBytes)
@@ -808,9 +812,12 @@ void setFlashSize(unsigned long romSize)
         cartSize = 32;
     }
 
+		printf("setupFlashParams");
     setupFlashParams();
 
+		printf("flashStartup");
 
 	flashStartup();
-}
+	printf("flash_end;");
 
+}

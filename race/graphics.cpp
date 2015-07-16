@@ -979,14 +979,19 @@ inline void spriteSortAll(unsigned int bw)
 // initialize drawing/blitting of a screen
 void graphicsBlitInit()
 {
-    // buffers 0 and 1
+
     // definitions for the back frame
+    printf("buffers 0 and 1 %d",SIZEX);
+    printf("buffers 0 and 1 %p",scrollBackX);
+
     tCBack.gbp   = &drawBuffer[8*SIZEX + (8-((*scrollBackX)&7))];
+    printf("gbp");
     tCBack.newScrollX = scrollBackX;
     tCBack.newScrollY = scrollBackY;
     tCBack.tileBase  = tile_table_back;
     tCBack.palette  = &palettes[16*4+16*4];
     // definitions for the front frame
+    printf("front frame");
     tCFront.gbp   = &drawBuffer[8*SIZEX + (8-((*scrollFrontX)&7))];
     tCFront.newScrollX = scrollFrontX;
     tCFront.newScrollY = scrollFrontY;
@@ -995,17 +1000,21 @@ void graphicsBlitInit()
     // definitions for sprite priorities
     //SprPriLo = *frame1Pri>>6;
     //SprPriHi = *frame0Pri>>6; // ?
+    printf("spritedefs");
     spriteDefs[0].gbp = &drawBuffer[8*SIZEX];
     spriteDefs[1].gbp = &drawBuffer[8*SIZEX];
     spriteDefs[2].gbp = &drawBuffer[8*SIZEX];
     //spriteDefs[3].gbp = &drawBuffer[8*SIZEX];
     // force recalculations for first line
+    printf("tcBack");
     tCBack.oldScrollX = *tCBack.newScrollX;
     tCBack.oldScrollY = *tCBack.newScrollY+1;   // force calculation of structure data
     tCFront.oldScrollX = *tCFront.newScrollX;
     tCFront.oldScrollY = *tCFront.newScrollY+1;  // force calculation of structure data
     // start drawing at line 0
     // *scanlineY = 0;
+    printf("endBlitinit");
+
 }
 
 inline void RenderTileCache(TILECACHE *tC, unsigned int bw)
@@ -1672,16 +1681,55 @@ BOOL graphics_init(HWND phWnd)
 {
     //put SDL setup stuff here
     //Flavor
-
+    // standard VRAM table adresses
+    sprite_table   = get_address(0x00008800);
+    pattern_table   = get_address(0x0000A000);
+    patterns = (unsigned short*)pattern_table;
+    tile_table_front  = (unsigned short *)get_address(0x00009000);
+    tile_table_back  = (unsigned short *)get_address(0x00009800);
+    palette_table   = (unsigned short *)get_address(0x00008200);
+    bw_palette_table  = get_address(0x00008100);
+    sprite_palette_numbers = get_address(0x00008C00);
+    // VDP registers
+    //
+    // wher is the vdp rendering now on the lcd display?
+    //unsigned char *scanlineX  = get_address(0x00008008);
+    scanlineY  = get_address(0x00008009);
+    // frame 0/1 priority registers
+    frame0Pri  = get_address(0x00008000);
+    frame1Pri  = get_address(0x00008030);
+    // windowing registers
+    wndTopLeftX = get_address(0x00008002);
+    wndTopLeftY = get_address(0x00008003);
+    wndSizeX  = get_address(0x00008004);
+    wndSizeY  = get_address(0x00008005);
+    // scrolling registers
+    scrollSpriteX = get_address(0x00008020);
+    scrollSpriteY = get_address(0x00008021);
+    scrollFrontX = get_address(0x00008032);
+    scrollFrontY = get_address(0x00008033);
+    scrollBackX = get_address(0x00008034);
+    scrollBackY = get_address(0x00008035);
+    // background color selection register and table
+    bgSelect  = get_address(0x00008118);
+    bgTable  = (unsigned short *)get_address(0x000083E0);
+    oowSelect  = get_address(0x00008012);
+    oowTable  = (unsigned short *)get_address(0x000083F0);
+    // machine constants
+    color_switch = get_address(0x00006F91);    // buffers 0 and 1
+    
 #ifdef TARGET_PSP
+    printf("PSP");
     palette_init = palette_init16;
     palette_init(0x001f,0x03e0,0x7c00);
+    printf("palette_init");
     drawBuffer = (unsigned short*)Screen->Pixels;
+    printf("drawBuffer");
 #elif __GP32__
     palette_init = palette_init16;
     palette_init(0xf800,0x07c0,0x003e);
 #else
-    dbg_print("in graphics_init\n");
+    printf("in graphics_init");
 
 
     switch (screen->format->BitsPerPixel)
@@ -1713,7 +1761,9 @@ BOOL graphics_init(HWND phWnd)
             oowTable = (unsigned short *)bwTable;
             //set_palette = set_paletteBW;
 #ifndef __GP32__
+            printf("graphicsBlitInit");
             graphicsBlitInit();
+            printf("graphicsBlitInit");
 #endif
             *scanlineY = 0;
             break;
@@ -1722,7 +1772,11 @@ BOOL graphics_init(HWND phWnd)
 			oowTable  = (unsigned short *)get_address(0x000083F0);
             //set_palette = set_paletteCol;
 #ifndef __GP32__
+printf("graphicsBlitInit NGPC");
+
             graphicsBlitInit();
+            printf("graphicsBlitInit NGPC");
+
 #endif
             *scanlineY = 0;
             break;
@@ -1735,6 +1789,7 @@ BOOL graphics_init(HWND phWnd)
         SDL_Flip(screen);
     }*/
 #endif
+    printf("END graphics_init");
     return TRUE;
 }
 
