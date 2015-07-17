@@ -66,7 +66,7 @@ static void AudioCallback(pl_snd_sample* buf,
 /* Initialize emulation */
 int InitEmulation()
 {
-  if (!(Screen = pspImageCreateVram(256, 152, PSP_IMAGE_16BPP)))
+  if (!(Screen = pspImageCreateVram(160, 152, PSP_IMAGE_16BPP)))
     return 0;
 
   Screen->Viewport.Width = 160;
